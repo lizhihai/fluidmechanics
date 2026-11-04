@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="format-detection" content="telephone=no,email=no,address=no">
+<meta name="theme-color" content="#0e3f63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="renderer" content="webkit">
+<title>例4-13 消防水枪喷水速度 · 交互演示</title>
+<style>
+:root{
+  --bg:#eef2f6;--card:#ffffff;--ink:#12243a;--muted:#5f7488;--line:#e3eaf1;
+  --blue:#1f6fa8;--blue-d:#0e3f63;--blue-l:#eaf3fa;--accent:#e2612e;--water:#3fa3d8;
+  --ok:#1f8a5b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);font-size:15px;line-height:1.62;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Helvetica Neue","Microsoft YaHei",Arial,sans-serif;
+  -webkit-text-size-adjust:100%;overflow-x:hidden;
+}
+.wrap{max-width:600px;margin:0 auto;padding:0 14px 30px;padding-bottom:calc(26px + env(safe-area-inset-bottom))}
+
+/* ---------- 顶部 ---------- */
+header{padding:18px 2px 4px;padding-top:calc(18px + env(safe-area-inset-top))}
+.eyebrow{font-size:11.5px;letter-spacing:.16em;color:var(--blue);font-weight:700}
+h1{font-size:21px;line-height:1.35;margin:5px 0 6px;letter-spacing:-.01em;font-weight:700}
+.sub{font-size:12.5px;color:var(--muted);margin:0}
+
+/* ---------- 卡片 ---------- */
+.card{
+  background:var(--card);border-radius:14px;margin:12px 0;overflow:hidden;
+  box-shadow:0 1px 2px rgba(18,36,58,.05),0 8px 22px -14px rgba(18,36,58,.35);
+}
+
+/* ---------- 场景图 ---------- */
+.scene{padding:2px 2px 0;position:relative;background:linear-gradient(180deg,#fbfdff 0%,#f4f8fc 100%)}
+.scene svg{display:block;width:100%;height:auto}
+.hud{
+  position:absolute;left:12px;top:10px;background:rgba(255,255,255,.9);
+  border:1px solid #dbe7f1;border-radius:10px;padding:5px 10px 6px;
+  box-shadow:0 2px 8px -4px rgba(18,36,58,.4);
+}
+.hud .hl{font-size:10.5px;color:var(--muted);letter-spacing:.03em}
+.hud .hv{font-size:22px;font-weight:700;color:var(--blue-d);line-height:1.1;font-variant-numeric:tabular-nums}
+.hud .hu{font-size:11px;color:var(--muted);margin-left:2px}
+
+/* ---------- 结果小格 ---------- */
+.mini{display:flex;flex-wrap:wrap;border-top:1px solid var(--line)}
+.mini .cell{width:50%;flex:0 0 50%;padding:9px 12px 10px}
+.mini .cell:nth-child(odd){border-right:1px solid var(--line)}
+.mini .cell:nth-child(1),.mini .cell:nth-child(2){border-bottom:1px solid var(--line)}
+.mini .k{font-size:11.5px;color:var(--muted);display:block;margin-bottom:1px}
+.mini .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+.mini .v small{font-size:11px;font-weight:500;color:var(--muted);margin-left:3px}
+.mini .v.warn{color:var(--accent)}
+
+/* ---------- 参数卡 ---------- */
+.pcard{padding:13px 14px 6px}
+.cardhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.cardhead h2{font-size:14.5px;margin:0;font-weight:700;letter-spacing:.01em}
+.cardhead h2 span{font-weight:400;color:var(--muted);font-size:12px;margin-left:5px}
+.ghost{
+  border:1px solid #cfdde9;background:#f7fbfe;color:var(--blue);border-radius:8px;
+  font-size:12px;padding:5px 10px;font-family:inherit;line-height:1.3;
+}
+.ghost:active{background:#e6f1f9}
+.live{
+  display:flex;align-items:center;background:var(--blue-l);border-radius:10px;
+  padding:7px 12px;margin-bottom:4px;font-variant-numeric:tabular-nums;
+}
+.live .lk{font-size:11.5px;color:#4a6f8c;margin-right:5px}
+.live .lv{font-size:19px;font-weight:700;color:var(--blue-d);line-height:1}
+.live .lu{font-size:11px;color:#6b8aa3;margin-left:3px}
+.live .sep{width:1px;height:16px;background:#c8dced;margin:0 12px}
+.live .lv2{font-size:14px;font-weight:700;color:#2c5b7e}
+
+.row{padding:9px 0 4px;border-bottom:1px solid #f0f4f8}
+.row:last-child{border-bottom:none}
+.rowhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px}
+.rowhead .name{font-size:13.5px;color:#294a63}
+.rowhead .name em{font-style:normal;color:var(--muted);font-size:11.5px;margin-left:4px}
+.rowhead .val{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--blue-d)}
+.rowhead .val i{font-style:normal;font-weight:400;font-size:11px;color:var(--muted);margin-left:3px}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;display:block;width:100%;
+  height:30px;margin:0;padding:0;border:0;
+  background-color:transparent;
+  background-image:linear-gradient(90deg,#1f6fa8 0%,#1f6fa8 50%,#dde7f0 50%,#dde7f0 100%);
+  background-repeat:no-repeat;
+  background-position:center center;background-size:100% 5px;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:5px;border-radius:3px;background:transparent;border:0;
+}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:23px;height:23px;border-radius:50%;background:#fff;
+  border:2.5px solid #1f6fa8;margin-top:-9px;box-shadow:0 1px 5px rgba(15,60,100,.28);
+}
+input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:#dde7f0}
+input[type=range]::-moz-range-progress{height:5px;border-radius:3px;background:#1f6fa8}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2.5px solid #1f6fa8}
+
+.fold{border-top:1px solid var(--line);margin-top:6px}
+.foldhead{
+  display:block;width:100%;text-align:left;background:none;border:0;
+  padding:11px 0 9px;font-size:12.5px;color:var(--blue);font-weight:600;
+  font-family:inherit;position:relative;
+}
+.foldhead .caret{
+  position:absolute;right:5px;top:14px;width:0;height:0;font-size:0;
+  border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid #1f6fa8;
+}
+.fold.open .caret{-webkit-transform:rotate(180deg);transform:rotate(180deg)}
+.foldbody{display:none}
+.fold.open .foldbody{display:block}
+.foldbody .row:last-child{border-bottom:none}
+
+/* ---------- 计算过程 ---------- */
+.steps{padding:2px 14px 12px}
+.step{display:flex;padding:11px 0;border-bottom:1px dashed #e6edf4}
+.step:last-child{border-bottom:none;padding-bottom:2px}
+.sn{
+  flex:0 0 19px;height:19px;border-radius:50%;background:var(--blue-l);color:var(--blue);
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  margin:2px 9px 0 0;
+}
+.sc{flex:1 1 auto;min-width:0}
+.st{font-size:13px;font-weight:600;color:#22455f;margin-bottom:3px}
+.sf{font-size:13.5px;color:#365a75;line-height:1.95;white-space:normal;padding-bottom:1px}
+.sf b{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+.sf .note{font-size:11.5px;color:var(--muted);white-space:normal}
+
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.88em;line-height:1.2;margin:0 1px}
+.fr .fz{padding:0 3px}
+.fr .fm{padding:0 3px;border-top:1px solid currentColor}
+.brk{font-size:1.35em;line-height:1;vertical-align:-.12em;color:#7c97ac}
+.eqbox{
+  background:#f7fafd;border:1px solid #e2ecf5;border-radius:9px;
+  padding:9px 11px;margin-top:5px;font-size:13px;overflow-x:auto;white-space:nowrap;
+  -webkit-overflow-scrolling:touch;color:#2b4f6c;font-variant-numeric:tabular-nums;
+}
+.eqbox.res{background:#fff8f4;border-color:#f6ddce}
+
+/* ---------- 趋势图 ---------- */
+.chartwrap{padding:2px 12px 6px}
+#chart{display:block;width:100%;height:158px}
+.chips{display:flex;flex-wrap:wrap;margin:2px -3px 8px}
+.chip{
+  margin:3px;border:1px solid #d6e2ec;background:#fff;color:#42647e;border-radius:20px;
+  padding:5px 11px;font-size:12px;font-family:inherit;line-height:1.3;
+}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.chartfoot{display:flex;align-items:center;justify-content:space-between;padding:0 2px 11px}
+.legend{font-size:11px;color:var(--muted);display:flex;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin:0 4px 1px 9px}
+.dot.o{background:var(--accent)}
+.dot.g{background:#9fb2c2}
+.play{
+  border:none;background:var(--blue-d);color:#fff;border-radius:8px;
+  font-size:12px;padding:6px 13px;font-family:inherit;font-weight:600;
+}
+.play:active{background:#0a2f4b}
+
+/* ---------- 知识点 ---------- */
+.notes{padding:4px 14px 14px}
+.note{display:flex;padding:9px 0;border-bottom:1px solid #f1f5f9}
+.note:last-child{border-bottom:none}
+.nd{
+  flex:0 0 5px;width:5px;border-radius:3px;background:#cfe0ee;margin:4px 10px 4px 0;
+}
+.nd.k1{background:#8ec5ea}.nd.k2{background:#f0b590}
+.nt{font-size:13px;line-height:1.65;color:#33546d}
+.nt b{color:#17394f}
+.nt code{
+  background:#f1f6fa;border-radius:4px;padding:0 4px;font-size:12.5px;
+  font-family:ui-monospace,Menlo,Consolas,monospace;color:#1c5a86;
+}
+footer{font-size:11px;color:#8ea3b4;text-align:center;padding:6px 8px 4px;line-height:1.7}
+
+/* ---------- 微信环境适配 ---------- */
+button{touch-action:manipulation;-ms-touch-action:manipulation}
+.scene svg{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+@media (orientation:landscape) and (max-height:560px){
+  .scene{max-width:460px;margin:0 auto}
+  header{padding-top:10px}
+  h1{font-size:19px;margin:3px 0 4px}
+  .hud{top:6px;left:8px;padding:3px 8px 4px}
+  .hud .hv{font-size:18px}
+}
+@media (max-width:340px){
+  .mini .cell{padding:8px 10px 9px}
+  .mini .v{font-size:15px}
+  .sf{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">工程流体力学 · 第四章 例 4-13</div>
+    <h1>消防水枪：功率如何决定喷水速度</h1>
+    <p class="sub">拖动参数，实时重算并观察各量的变化趋势</p>
+  </header>
+
+  <!-- 场景 -->
+  <div class="card">
+    <div class="scene">
+      <div class="hud">
+        <div class="hl">喷出速度 v₃</div>
+        <div><span class="hv" id="hudV">9.20</span><span class="hu">m/s</span></div>
+      </div>
+      <svg id="scene" viewBox="0 0 360 300" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="gw" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#a9d9f2"/><stop offset="1" stop-color="#63b2e0"/>
+          </linearGradient>
+          <linearGradient id="gt" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e7eef5"/><stop offset="1" stop-color="#cfdae4"/>
+          </linearGradient>
+          <linearGradient id="gs" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fbfdff"/><stop offset="1" stop-color="#eef4f9"/>
+          </linearGradient>
+        </defs>
+
+        <!-- 水池 -->
+        <rect id="tankBox" x="6" y="104" width="72" height="154" rx="3" fill="url(#gs)" stroke="#b9c9d7" stroke-width="1.6"/>
+        <rect id="waterBody" x="7" y="118" width="70" height="139" fill="url(#gw)" opacity=".85"/>
+        <line id="levelLine" x1="6" y1="118" x2="205" y2="118" stroke="#3d95c9" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/>
+        <text x="11" y="112" font-size="9.5" fill="#3d7fa8" font-weight="600">0-0</text>
+
+        <!-- 尺寸标注 -->
+        <line id="h1line" x1="196" y1="58" x2="196" y2="118" stroke="#d9691f" stroke-width="1.1"/>
+        <line id="h1capA" x1="191" y1="58" x2="201" y2="58" stroke="#d9691f" stroke-width="1.1"/>
+        <line id="h1capB" x1="191" y1="118" x2="201" y2="118" stroke="#d9691f" stroke-width="1.1"/>
+        <text id="h1txt" x="205" y="90" font-size="10" fill="#c2551a" font-weight="600" stroke="#fbfdff" stroke-width="3" paint-order="stroke">h₁=3m</text>
+
+        <line id="h2line" x1="196" y1="118" x2="196" y2="238" stroke="#1f6fa8" stroke-width="1.1"/>
+        <line id="h2capA" x1="191" y1="118" x2="201" y2="118" stroke="#1f6fa8" stroke-width="1.1"/>
+        <line id="h2capB" x1="191" y1="238" x2="201" y2="238" stroke="#1f6fa8" stroke-width="1.1"/>
+        <text id="h2txt" x="205" y="180" font-size="10" fill="#1a5d8c" font-weight="600" stroke="#fbfdff" stroke-width="3" paint-order="stroke">h₂=6m</text>
+
+        <!-- 管道：外层 + 内层 -->
+        <path id="pOuterA" fill="none" stroke="#b8c7d4" stroke-linecap="round"/>
+        <path id="pOuterB" fill="none" stroke="#b8c7d4" stroke-linecap="round"/>
+        <path id="pInnerA" fill="none" stroke="#dfeaf3" stroke-linecap="round"/>
+        <path id="pInnerB" fill="none" stroke="#dfeaf3" stroke-linecap="round"/>
+        <path id="pFlowA" fill="none" stroke="#5eb6e6" stroke-linecap="round" opacity=".95"/>
+        <path id="pFlowB" fill="none" stroke="#5eb6e6" stroke-linecap="round" opacity=".95"/>
+
+        <!-- 喷管 -->
+        <polygon id="nozOuter" fill="#c3d1dd" stroke="#a9bac9" stroke-width=".8"/>
+        <polygon id="nozInner" fill="#5eb6e6"/>
+
+        <!-- 泵 -->
+        <g id="pump">
+          <circle id="pumpC" cx="150" cy="238" r="15" fill="#ffffff" stroke="#1f6fa8" stroke-width="2"/>
+          <g id="impeller">
+            <path id="impP" d="" fill="none" stroke="#1f6fa8" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <text id="pumpT" x="150" y="264" font-size="10" fill="#1f6fa8" font-weight="700" text-anchor="middle">P</text>
+        </g>
+
+        <!-- 射流 -->
+        <path id="jetBand" fill="none" stroke="#7cc6ec" stroke-width="3.4" stroke-linecap="round" opacity=".5"/>
+        <g id="jet"></g>
+
+        <!-- 文字标注 -->
+        <text id="d1txt" x="96" y="256" font-size="9.5" fill="#517891" font-weight="600" stroke="#fbfdff" stroke-width="2.6" paint-order="stroke">d₁=150mm</text>
+        <text id="d2txt" x="246" y="196" font-size="9.5" fill="#517891" font-weight="600" stroke="#fbfdff" stroke-width="2.6" paint-order="stroke">d₂=100mm</text>
+        <text id="d3txt" x="310" y="70" text-anchor="middle" font-size="9.5" fill="#517891" font-weight="600" stroke="#fbfdff" stroke-width="2.6" paint-order="stroke">d₃=75mm</text>
+        <text id="s1txt" x="128" y="238" font-size="9" fill="#2c5471" font-weight="700" text-anchor="end" stroke="#fbfdff" stroke-width="2.4" paint-order="stroke">1</text>
+        <text id="s3txt" x="302" y="58" font-size="9" fill="#2c5471" font-weight="700" text-anchor="middle" stroke="#fbfdff" stroke-width="2.4" paint-order="stroke">3</text>
+      </svg>
+    </div>
+    <div class="mini">
+      <div class="cell"><span class="k">进口流速 v₁</span><span class="v" id="mV1">2.30<small>m/s</small></span></div>
+      <div class="cell"><span class="k">出口管流速 v₂</span><span class="v" id="mV2">5.18<small>m/s</small></span></div>
+      <div class="cell"><span class="k">流量 q<sub>V</sub></span><span class="v" id="mQ">40.7<small>L/s</small></span></div>
+      <div class="cell"><span class="k">截面 1—1 表压 p₁−p₀</span><span class="v" id="mP">42.9<small>kPa</small></span></div>
+    </div>
+  </div>
+
+  <!-- 参数 -->
+  <div class="card pcard">
+    <div class="cardhead">
+      <h2>调节参数<span>拖动即重算</span></h2>
+      <button class="ghost" id="reset">恢复例题</button>
+    </div>
+    <div class="live">
+      <span class="lk">v₃</span><span class="lv" id="liveV">9.20</span><span class="lu">m/s</span>
+      <span class="sep"></span>
+      <span class="lk">p₁</span><span class="lv2" id="liveP">42.9</span><span class="lu">kPa</span>
+    </div>
+
+    <div class="row">
+      <div class="rowhead"><span class="name">泵输入功率 <em>N</em></span><span class="val"><span id="vN">10.0</span><i>kW</i></span></div>
+      <input type="range" id="sN" min="1" max="30" step="0.5" value="10">
+    </div>
+    <div class="row">
+      <div class="rowhead"><span class="name">喷射高度 <em>h₁</em></span><span class="val"><span id="vH1">3.0</span><i>m</i></span></div>
+      <input type="range" id="sH1" min="0" max="15" step="0.5" value="3">
+    </div>
+    <div class="row">
+      <div class="rowhead"><span class="name">泵进口淹没深度 <em>h₂</em></span><span class="val"><span id="vH2">6.0</span><i>m</i></span></div>
+      <input type="range" id="sH2" min="0.5" max="15" step="0.5" value="6">
+    </div>
+    <div class="row">
+      <div class="rowhead"><span class="name">进口管径 <em>d₁</em></span><span class="val"><span id="vD1">150</span><i>mm</i></span></div>
+      <input type="range" id="sD1" min="80" max="250" step="5" value="150">
+    </div>
+    <div class="row">
+      <div class="rowhead"><span class="name">出口管径 <em>d₂</em></span><span class="val"><span id="vD2">100</span><i>mm</i></span></div>
+      <input type="range" id="sD2" min="40" max="200" step="5" value="100">
+    </div>
+    <div class="row">
+      <div class="rowhead"><span class="name">喷口直径 <em>d₃</em></span><span class="val"><span id="vD3">75</span><i>mm</i></span></div>
+      <input type="range" id="sD3" min="20" max="150" step="2.5" value="75">
+    </div>
+
+    <div class="fold" id="advFold">
+      <button class="foldhead" id="advBtn" type="button" aria-expanded="false" aria-controls="advBody">更多参数（流体物性 · 损失系数）<span class="caret"></span></button>
+      <div class="foldbody" id="advBody">
+        <div class="row">
+          <div class="rowhead"><span class="name">密度 <em>ρ</em></span><span class="val"><span id="vRho">1000</span><i>kg/m³</i></span></div>
+          <input type="range" id="sRho" min="700" max="1400" step="10" value="1000">
+        </div>
+        <div class="row">
+          <div class="rowhead"><span class="name">重力加速度 <em>g</em></span><span class="val"><span id="vG">9.80</span><i>m/s²</i></span></div>
+          <input type="range" id="sG" min="9.4" max="9.81" step="0.01" value="9.8">
+        </div>
+        <div class="row">
+          <div class="rowhead"><span class="name">进口段损失系数 <em>k₁</em></span><span class="val"><span id="vK1">5.0</span><i>×v₁²/2g</i></span></div>
+          <input type="range" id="sK1" min="0" max="20" step="0.5" value="5">
+        </div>
+        <div class="row">
+          <div class="rowhead"><span class="name">出口段损失系数 <em>k₂</em></span><span class="val"><span id="vK2">12.0</span><i>×v₂²/2g</i></span></div>
+          <input type="range" id="sK2" min="0" max="40" step="0.5" value="12">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 计算过程 -->
+  <div class="card">
+    <div class="pcard" style="padding-bottom:0">
+      <div class="cardhead" style="margin-bottom:2px"><h2>计算过程<span>随参数实时代入</span></h2></div>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="sn">1</div>
+        <div class="sc">
+          <div class="st">连续性方程：先定速度分配</div>
+          <div class="sf">v₁ = v₃(d₃/d₁)² = <b id="r1">0.250</b> v₃</div>
+          <div class="sf">v₂ = v₃(d₃/d₂)² = <b id="r2">0.563</b> v₃</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="sn">2</div>
+        <div class="sc">
+          <div class="st">两段压头损失折算到 v₃</div>
+          <div class="sf">h<sub>f,0-3</sub> = k₁<span class="fr"><span class="fz">v₁²</span><span class="fm">2g</span></span> + k₂<span class="fr"><span class="fz">v₂²</span><span class="fm">2g</span></span> = <b id="rk">4.109</b> <span class="fr"><span class="fz">v₃²</span><span class="fm">2g</span></span> = <b id="rhf">17.77</b> m</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="sn">3</div>
+        <div class="sc">
+          <div class="st">0—0 与 3—3 截面间机械能守恒</div>
+          <div class="sf" style="margin-bottom:1px"><span class="fr"><span class="fz">N</span><span class="fm">q<sub>m</sub>g</span></span> = <span class="fr"><span class="fz">v₃²−v₀²</span><span class="fm">2g</span></span> + (z₃−z₀) + <span class="fr"><span class="fz">p₃−p₀</span><span class="fm">ρg</span></span> + h<sub>f,0-3</sub></div>
+          <div class="sf"><span class="note">取 v₀≈0、p₃=p₀、z₃−z₀=h₁，整理为关于 v₃ 的三次方程：</span></div>
+          <div class="eqbox" style="white-space:normal">N = <span class="brk">[</span> K·<span class="fr"><span class="fz">v₃²</span><span class="fm">2</span></span> + g·h₁ <span class="brk">]</span> · ρ v₃ <span class="fr"><span class="fz">πd₃²</span><span class="fm">4</span></span></div>
+          <div class="sf"><span class="note">其中 K = 1 + k₁(d₃/d₁)⁴ + k₂(d₃/d₂)⁴ = <b id="rK">5.109</b></span></div>
+          <div class="eqbox res" id="eqNum">11.29 v₃³ + 129.89 v₃ = 10000</div>
+          <div class="sf" style="margin-top:4px"><span class="note">单调递增，唯一正根：</span> v₃ = <b id="rv3">9.21</b> m/s</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="sn">4</div>
+        <div class="sc">
+          <div class="st">0—0 与 1—1 截面间求进口压力</div>
+          <div class="sf" style="margin-bottom:1px"><span class="fr"><span class="fz">v₁²−v₀²</span><span class="fm">2g</span></span> + (z₁−z₀) + <span class="fr"><span class="fz">p₁−p₀</span><span class="fm">ρg</span></span> + h<sub>f,0-1</sub> = 0</div>
+          <div class="sf"><span class="note">z₁−z₀ = −h₂，h<sub>f,0-1</sub> = k₁v₁²/2g，故</span></div>
+          <div class="eqbox" style="white-space:normal">p₁ − p₀ = ρg <span class="brk">[</span> h₂ − (1+k₁)·<span class="fr"><span class="fz">v₁²</span><span class="fm">2g</span></span> <span class="brk">]</span> <span style="white-space:nowrap">= <b id="rp1" style="color:#e2612e">42930</b> Pa</span></div>
+          <div class="sf" id="p1note" style="margin-top:4px"><span class="note">表压为正，进口截面仍高于大气压。</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 趋势 -->
+  <div class="card">
+    <div class="pcard" style="padding-bottom:0">
+      <div class="cardhead" style="margin-bottom:6px"><h2>趋势：调它，v₃ 怎么变<span>横轴为所选参数</span></h2></div>
+    </div>
+    <div class="chartwrap">
+      <div class="chips">
+        <button class="chip on" data-key="N">泵功率 N</button>
+        <button class="chip" data-key="d3">喷口 d₃</button>
+        <button class="chip" data-key="h1">高度 h₁</button>
+        <button class="chip" data-key="d1">进口 d₁</button>
+        <button class="chip" data-key="d2">出口 d₂</button>
+        <button class="chip" data-key="k2">损失 k₂</button>
+      </div>
+      <canvas id="chart"></canvas>
+      <div class="chartfoot">
+        <div class="legend"><span class="dot o"></span>当前<span class="dot g"></span>例题基准</div>
+        <button class="play" id="sweep">▶ 自动演示</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 知识点 -->
+  <div class="card">
+    <div class="pcard" style="padding-bottom:0">
+      <div class="cardhead" style="margin-bottom:2px"><h2>边调边想<span>四个关键点</span></h2></div>
+    </div>
+    <div class="notes">
+      <div class="note"><div class="nd k1"></div><div class="nt"><b>三个截面放进一个方程。</b>0—0（液面）、1—1（泵进口）、3—3（喷口）用同一条机械能守恒方程串联。泵的输入功率以 <code>N/(q<sub>m</sub>g)</code> 的形式进入方程，量纲是长度，即压头。</div></div>
+      <div class="note"><div class="nd k1"></div><div class="nt"><b>管径决定速度分配。</b>由 vA = 常数，速度与直径平方成反比。本题 d₃/d₁=0.5，所以 v₁ 只有 v₃ 的 1/4；喷口最细，流速最高。</div></div>
+      <div class="note"><div class="nd k2"></div><div class="nt"><b>功率与速度是三次关系。</b>动能 ∝ v²，质量流量 ∝ v，相乘得 N ∝ v³。忽略提升高度时，功率翻倍只让喷速升到 2<sup>1/3</sup>≈1.26 倍。把 N 从 10 kW 拖到 20 kW，本例 v₃ 由 9.21 升到 11.8 m/s，约 1.28 倍——比一次方增长慢得多。</div></div>
+      <div class="note"><div class="nd k2"></div><div class="nt"><b>抬得越高，喷得越慢。</b>同样的功率要先支付 g·h₁ 这份"重力账单"，剩下的才用于加速。把 h₁ 拖大，v₃ 明显下降；反之把 h₁ 拖到 0，v₃ 达到最大。</div></div>
+      <div class="note"><div class="nd k1"></div><div class="nt"><b>进口压力可能变成负表压。</b>p₁−p₀ = ρg[h₂ − (1+k₁)v₁²/2g]，淹没深度 h₂ 提供静压，流速与进口段损失消耗静压。若把 h₂ 拖小或把 d₃ 拖大，p₁ 会转为负值——工程上意味着泵进口有汽蚀风险。</div></div>
+      <div class="note"><div class="nd k1"></div><div class="nt"><b>损失系数很"贵"。</b>k₁、k₂ 每增加 1，相当于多消耗一份速度头。本题 k₂=12 时出口段损失约占总损失的 92%，所以缩短管路、减少弯头比单纯加大功率更有效。</div></div>
+    </div>
+    <footer>
+      依据教材第四章例 4-13 的方程与数据重建，公式与题设损失系数（5v₁²/2g、12v₂²/2g）一致。<br>
+      原题答案：v₃≈9.2 m/s，p₁−p₀=42930 Pa（ρ=1000，g=9.8）。本页按 π 精确值求解，得 v₃=9.21 m/s、p₁−p₀≈42911 Pa，与书上取整结果吻合。
+    </footer>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BASE = {N:10,h1:3,h2:6,d1:150,d2:100,d3:75,rho:1000,g:9.8,k1:5,k2:12};
+  var S = {};
+  for(var kk in BASE){ if(BASE.hasOwnProperty(kk)) S[kk]=BASE[kk]; }
+
+  var LEVEL = 118;          // 液面 y
+  var X_POOL_R = 78, X_PUMP = 150, X_BEND = 224, X_NOZ = 282, X_MOUTH = 294;
+
+  var MAP = [
+    {k:'N',  id:'N',   dec:1, fixed:1},
+    {k:'h1', id:'H1',  dec:1, fixed:1},
+    {k:'h2', id:'H2',  dec:1, fixed:1},
+    {k:'d1', id:'D1',  dec:0, fixed:0},
+    {k:'d2', id:'D2',  dec:0, fixed:0},
+    {k:'d3', id:'D3',  dec:1, fixed:1},
+    {k:'rho',id:'Rho', dec:0, fixed:0},
+    {k:'g',  id:'G',   dec:2, fixed:2},
+    {k:'k1', id:'K1',  dec:1, fixed:1},
+    {k:'k2', id:'K2',  dec:1, fixed:1}
+  ];
+
+  var el = {};
+  function $(id){ return document.getElementById(id); }
+  var i, m;
+  for(i=0;i<MAP.length;i++){ m=MAP[i]; el[m.k]={ slider:$('s'+m.id), out:$('v'+m.id) }; }
+
+  /* ---------------- 计算 ---------------- */
+  function compute(s){
+    var d1=s.d1/1000, d2=s.d2/1000, d3=s.d3/1000;
+    var A3=Math.PI*d3*d3/4;
+    var r1=d3/d1, r2=d3/d2;
+    var r1q=r1*r1, r2q=r2*r2;
+    var r1_4=r1q*r1q, r2_4=r2q*r2q;
+    var K=1+s.k1*r1_4+s.k2*r2_4;       // 括号内速度头系数
+    var N=s.N*1000;
+    var a=s.rho*A3*K/2;                // v³ 系数
+    var b=s.rho*A3*s.g*s.h1;           // v  系数
+
+    // 解 a·v³ + b·v = N（单调递增，二分）
+    var lo=0, hi=1, guard=0;
+    while(a*hi*hi*hi+b*hi < N && guard<200){ hi*=2; guard++; }
+    for(var j=0;j<70;j++){
+      var mid=(lo+hi)/2;
+      if(a*mid*mid*mid+b*mid < N) lo=mid; else hi=mid;
+    }
+    var v3=(lo+hi)/2;
+
+    var v1=v3*r1q, v2=v3*r2q;
+    var qV=A3*v3, qm=s.rho*qV;
+    var hf01=s.k1*v1*v1/(2*s.g);
+    var hf13=s.k2*v2*v2/(2*s.g);
+    var hf=hf01+hf13;
+    var p1=s.rho*s.g*(s.h2-(1+s.k1)*v1*v1/(2*s.g));
+    var jet=v3*v3/(2*s.g);
+
+    return {v3:v3,v1:v1,v2:v2,qV:qV,qm:qm,hf01:hf01,hf13:hf13,hf:hf,p1:p1,jet:jet,
+            K:K,a:a,b:b,N:N,r1:r1q,r2:r2q,A3:A3};
+  }
+
+  var C = compute(S);
+
+  /* ---------------- 滑块样式 ---------------- */
+  function paintRange(k){
+    var o=el[k]; if(!o) return;
+    var sl=o.slider, mn=parseFloat(sl.min), mx=parseFloat(sl.max), v=parseFloat(sl.value);
+    var pc=Math.max(0, Math.min(100, (v-mn)/(mx-mn)*100));
+    // 轨道填充直接写内联样式：不依赖伪元素继承 CSS 变量，兼容 X5 / WKWebView
+    sl.style.backgroundImage='linear-gradient(90deg,#1f6fa8 0%,#1f6fa8 '+pc.toFixed(1)+'%,#dde7f0 '+pc.toFixed(1)+'%,#dde7f0 100%)';
+    sl.style.backgroundSize='100% 5px';
+    sl.style.backgroundPosition='center center';
+    sl.style.backgroundRepeat='no-repeat';
+    var cfg=null;
+    for(var q=0;q<MAP.length;q++){ if(MAP[q].k===k) cfg=MAP[q]; }
+    o.out.innerHTML = v.toFixed(cfg.dec);
+  }
+  function paintAll(){ for(var k in el){ if(el.hasOwnProperty(k)) paintRange(k); } }
+
+  /* ---------------- 场景几何 ---------------- */
+  function pipeW(d){ return Math.max(3.2, Math.min(13, d/16)); }
+
+  function drawScene(){
+    var sc = Math.min(20, 78/Math.max(S.h1,0.4), 130/Math.max(S.h2,0.4));
+    var yN = LEVEL - S.h1*sc;
+    var yP = LEVEL + S.h2*sc;
+
+    // 水面
+    $('waterBody').setAttribute('y', LEVEL);
+    $('waterBody').setAttribute('height', Math.max(0, 257-LEVEL));
+    $('levelLine').setAttribute('y1', LEVEL);
+    $('levelLine').setAttribute('y2', LEVEL);
+
+    // h 标注
+    $('h1line').setAttribute('y1', yN); $('h1line').setAttribute('y2', LEVEL);
+    $('h1capA').setAttribute('y1', yN); $('h1capA').setAttribute('y2', yN);
+    $('h1capB').setAttribute('y1', LEVEL); $('h1capB').setAttribute('y2', LEVEL);
+    var h1y = (yN+LEVEL)/2+3.5, h2y = (LEVEL+yP)/2+3.5;
+    if(yP-h2y < 13) h2y = yP + 14;
+    if(h2y-h1y < 24){ var need=(24-(h2y-h1y))/2; h1y-=need; h2y+=need; }
+    $('h1txt').setAttribute('y', h1y.toFixed(1));
+    $('h1txt').textContent = 'h₁='+S.h1.toFixed(1)+'m';
+
+    $('h2line').setAttribute('y1', LEVEL); $('h2line').setAttribute('y2', yP);
+    $('h2capA').setAttribute('y1', LEVEL); $('h2capA').setAttribute('y2', LEVEL);
+    $('h2capB').setAttribute('y1', yP); $('h2capB').setAttribute('y2', yP);
+    $('h2txt').setAttribute('y', h2y.toFixed(1));
+    $('h2txt').textContent = 'h₂='+S.h2.toFixed(1)+'m';
+
+    // 管宽
+    var w1=pipeW(S.d1), w2=pipeW(S.d2), w3=pipeW(S.d3);
+
+    // A 段：池壁→泵
+    var dA='M'+X_POOL_R+','+yP+' H'+(X_PUMP-15);
+    $('pOuterA').setAttribute('d', dA); $('pOuterA').setAttribute('stroke-width', w1+2.6);
+    $('pInnerA').setAttribute('d', dA); $('pInnerA').setAttribute('stroke-width', w1);
+    $('pFlowA').setAttribute('d', dA);  $('pFlowA').setAttribute('stroke-width', w1*0.5);
+
+    // B 段：泵→弯头→喷口
+    var dB='M'+(X_PUMP+15)+','+yP+' H'+X_BEND+
+           ' C'+(X_BEND+28)+','+yP+' 268,'+yN+' '+X_NOZ+','+yN;
+    $('pOuterB').setAttribute('d', dB); $('pOuterB').setAttribute('stroke-width', w2+2.6);
+    $('pInnerB').setAttribute('d', dB); $('pInnerB').setAttribute('stroke-width', w2);
+    $('pFlowB').setAttribute('d', dB);  $('pFlowB').setAttribute('stroke-width', w2*0.5);
+
+    // 喷管收缩段
+    var nozPts = X_NOZ+','+(yN-w2/2)+' '+(X_MOUTH-2)+','+(yN-w3/2)+' '+
+                 (X_MOUTH-2)+','+(yN+w3/2)+' '+X_NOZ+','+(yN+w2/2);
+    $('nozOuter').setAttribute('points', nozPts);
+    var iw2=Math.max(1.4,w2-2.2), iw3=Math.max(1.2,w3-2.2);
+    $('nozInner').setAttribute('points',
+      (X_NOZ+2)+','+(yN-iw2/2)+' '+(X_MOUTH-3)+','+(yN-iw3/2)+' '+
+      (X_MOUTH-3)+','+(yN+iw3/2)+' '+(X_NOZ+2)+','+(yN+iw2/2));
+
+    // 泵（整组随 yP 平移，组内坐标仍以 238 为基准）
+    $('pump').setAttribute('transform','translate(0,'+(yP-238)+')');
+    // 泵叶轮（画一次）
+    var imp='';
+    for(var a=0;a<3;a++){
+      var ang=a*120*Math.PI/180;
+      imp += 'M150,238 L'+ (150+11.8*Math.cos(ang)) +','+ (238+11.8*Math.sin(ang));
+      if(a<2) imp+=' ';
+    }
+    $('impP').setAttribute('d', imp);
+
+    // 文字标注位置
+    $('d1txt').setAttribute('y', Math.min(292, yP+21));
+    $('d1txt').setAttribute('x', 84);
+    $('d1txt').textContent = 'd₁='+S.d1.toFixed(0)+'mm';
+    var d2y = yP+21;
+    if(h2y > d2y-14) d2y = h2y+14;
+    $('d2txt').setAttribute('y', Math.min(294, d2y));
+    $('d2txt').setAttribute('x', 178);
+    $('d2txt').textContent = 'd₂='+S.d2.toFixed(0)+'mm';
+    $('d3txt').setAttribute('y', Math.max(26, yN-9));
+    $('d3txt').setAttribute('x', 300);
+    $('d3txt').textContent = 'd₃='+S.d3.toFixed(0)+'mm';
+    $('s1txt').setAttribute('y', yP-9);
+    $('s3txt').setAttribute('y', Math.max(12, yN-23));
+    $('s3txt').setAttribute('x', 272);
+
+    // 流动条纹：dash 由主循环逐帧推进，避免 CSS 关键帧与管宽不匹配
+    dashA = Math.max(5, w1*1.05); dashB = Math.max(4.2, w2*1.05);
+    perA = dashA*2.6; perB = dashB*2.6;
+    $('pFlowA').setAttribute('stroke-dasharray', dashA.toFixed(1)+' '+(dashA*1.6).toFixed(1));
+    $('pFlowB').setAttribute('stroke-dasharray', dashB.toFixed(1)+' '+(dashB*1.6).toFixed(1));
+    $('pFlowA').style.opacity = 0.95;
+    $('pFlowB').style.opacity = 0.95;
+
+    // 射流主带：与粒子同一物理映射
+    var px = 12 + C.v3*4.2, gpx = 9.8*4.2;
+    var jd = 'M'+X_MOUTH+','+yN.toFixed(1);
+    for(var tt=0.04; tt<2.2; tt+=0.04){
+      var jx = X_MOUTH + px*tt;
+      var jy = yN + 0.5*gpx*tt*tt;
+      if(jx>362 || jy>302) break;
+      jd += ' L'+jx.toFixed(1)+','+jy.toFixed(1);
+    }
+    $('jetBand').setAttribute('d', jd);
+    $('jetBand').setAttribute('stroke-width', Math.max(2.2, w3*0.8).toFixed(1));
+
+    return {yN:yN, yP:yP, w2:w2, w3:w3};
+  }
+
+  /* ---------------- 射流粒子 ---------------- */
+  var jetSvg = $('jet');
+  var particles = [];
+  var PCOUNT = 12;
+  var geo = {yN:58};
+  var dashA = 16, dashB = 12, perA = 40, perB = 30, flowPhaseA = 0, flowPhaseB = 0, impAng = 0, jetTime = 0;
+  for(var p=0;p<PCOUNT;p++){
+    var c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('r','2.2');
+    c.setAttribute('fill','#5cb8e8');
+    jetSvg.appendChild(c);
+    particles.push({node:c, ph:p/PCOUNT});
+  }
+
+  function updateJet(dt){
+    jetTime += dt;
+    var v = C.v3;
+    var px = 12 + v*4.2;      // m/s → px/s（叠加基速，避免极小流速时停滞）
+    var gpx = 9.8*4.2;
+    var x0 = X_MOUTH+1, y0 = geo.yN;
+    var Tvis = Math.max(0.22, Math.min(1.45, (358-x0)/px));
+    for(var q=0;q<particles.length;q++){
+      var pt=particles[q];
+      var tt = (pt.ph*Tvis + jetTime) % Tvis;
+      var x = x0 + px*tt;
+      var y = y0 + 0.5*gpx*tt*tt;
+      pt.node.setAttribute('cx', x.toFixed(1));
+      pt.node.setAttribute('cy', y.toFixed(1));
+      pt.node.setAttribute('opacity', Math.max(0.05, 0.88 - tt*0.38).toFixed(2));
+    }
+  }
+
+  /* ---------------- 文字与结果 ---------------- */
+  function render(){
+    C = compute(S);
+
+    var v3s = C.v3.toFixed(2);
+    $('hudV').textContent = v3s;
+    $('liveV').textContent = v3s;
+
+    $('mV1').innerHTML = C.v1.toFixed(2)+'<small>m/s</small>';
+    $('mV2').innerHTML = C.v2.toFixed(2)+'<small>m/s</small>';
+    $('mQ').innerHTML  = (C.qV*1000).toFixed(1)+'<small>L/s</small>';
+
+    var pKpa = C.p1/1000;
+    var pEl = $('mP');
+    if(Math.abs(pKpa) >= 10){
+      pEl.innerHTML = pKpa.toFixed(1)+'<small>kPa</small>';
+    } else {
+      pEl.innerHTML = Math.round(C.p1)+'<small>Pa</small>';
+    }
+    pEl.className = 'v' + (C.p1 < 0 ? ' warn' : '');
+    $('liveP').textContent = Math.abs(pKpa)>=10 ? pKpa.toFixed(1) : Math.round(C.p1/10)/100;
+    $('liveP').style.color = C.p1<0 ? '#e2612e' : '#2c5b7e';
+
+    // 计算过程
+    $('r1').textContent = C.r1.toFixed(3);
+    $('r2').textContent = C.r2.toFixed(3);
+    $('rk').textContent = (S.k1*C.r1*C.r1 + S.k2*C.r2*C.r2).toFixed(3);
+    if($('rK')) $('rK').textContent = C.K.toFixed(3);
+    $('rhf').textContent = C.hf.toFixed(2);
+    $('rv3').textContent = C.v3.toFixed(2);
+    $('eqNum').textContent = C.a.toFixed(2)+' v₃³ + '+C.b.toFixed(2)+' v₃ = '+C.N.toFixed(0);
+    $('rp1').textContent = Math.round(C.p1);
+
+    var note = $('p1note');
+    if(C.p1 < 0){
+      note.innerHTML = '<span class="note" style="color:#c2551a">表压为负：该处低于大气压，实际运行有汽蚀风险，需提高 h₂ 或减小 d₃。</span>';
+    } else if(C.p1 < 5000){
+      note.innerHTML = '<span class="note">表压已接近 0，泵进口静压余量很小，注意汽蚀。</span>';
+    } else {
+      note.innerHTML = '<span class="note">表压为正，进口截面仍高于大气压。</span>';
+    }
+
+    var svgEl = $('scene');
+    if(svgEl.lastChild !== $('h2txt')){
+      svgEl.appendChild($('h1txt'));
+      svgEl.appendChild($('h2txt'));
+    }
+    geo = drawScene();
+    drawChart();
+  }
+
+  /* ---------------- 趋势图 ---------------- */
+  var TREND = {
+    N: {label:'泵功率 N', unit:'kW', min:1,   max:30,  step:0.5},
+    d3:{label:'喷口直径 d₃', unit:'mm', min:20, max:150, step:2.5},
+    h1:{label:'喷射高度 h₁', unit:'m',  min:0,  max:15,  step:0.5},
+    d1:{label:'进口管径 d₁', unit:'mm', min:80, max:250, step:5},
+    d2:{label:'出口管径 d₂', unit:'mm', min:40, max:200, step:5},
+    k2:{label:'出口损失系数 k₂', unit:'', min:0, max:40, step:0.5}
+  };
+  var trendKey = 'N';
+  var cv = $('chart');
+  var ctx = cv.getContext('2d');
+
+  function v3At(key, x){
+    var t={}, k;
+    for(k in S){ if(S.hasOwnProperty(k)) t[k]=S[k]; }
+    t[key]=x;
+    return compute(t).v3;
+  }
+
+  function drawChart(){
+    var cfg=TREND[trendKey];
+    var CSSW=cv.clientWidth || 330;
+    var CSSH=158;
+    var dpr=Math.min(window.devicePixelRatio||1, 2.5);
+    if(cv.width!==Math.round(CSSW*dpr) || cv.height!==Math.round(CSSH*dpr)){
+      cv.width=Math.round(CSSW*dpr); cv.height=Math.round(CSSH*dpr);
+      cv.style.height=CSSH+'px';
+    }
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,CSSW,CSSH);
+
+    var L=40, R=12, T=12, B=24;
+    var pw0=CSSW-L-R, ph0=CSSH-T-B;
+
+    var pts=[], i0;
+    var nSamp=80;
+    for(i0=0;i0<=nSamp;i0++){
+      var xv=cfg.min+(cfg.max-cfg.min)*i0/nSamp;
+      pts.push([xv, v3At(trendKey, xv)]);
+    }
+    var yMin=1e9, yMax=-1e9;
+    for(i0=0;i0<pts.length;i0++){
+      if(pts[i0][1]<yMin) yMin=pts[i0][1];
+      if(pts[i0][1]>yMax) yMax=pts[i0][1];
+    }
+    var pad=(yMax-yMin)*0.14;
+    if(pad<0.4) pad=0.4;
+    yMin=Math.max(0,yMin-pad); yMax=yMax+pad;
+    if(yMax-yMin<0.5) yMax=yMin+0.5;
+
+    function X(x){ return L+(x-cfg.min)/(cfg.max-cfg.min)*pw0; }
+    function Y(y){ return T+ph0-(y-yMin)/(yMax-yMin)*ph0; }
+
+    // 网格
+    ctx.strokeStyle='#e9f0f6'; ctx.lineWidth=1;
+    ctx.fillStyle='#93a9ba'; ctx.font='10px -apple-system,"PingFang SC",sans-serif';
+    ctx.textAlign='right'; ctx.textBaseline='middle';
+    for(var g=0;g<=3;g++){
+      var yy=T+ph0*g/3;
+      var val=yMax-(yMax-yMin)*g/3;
+      ctx.beginPath(); ctx.moveTo(L,yy); ctx.lineTo(L+pw0,yy); ctx.stroke();
+      ctx.fillText(val.toFixed(1), L-5, yy);
+    }
+
+    // 曲线
+    ctx.beginPath();
+    for(i0=0;i0<pts.length;i0++){
+      var px=X(pts[i0][0]), py=Y(pts[i0][1]);
+      if(i0===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    var grad=ctx.createLinearGradient(0,T,0,T+ph0);
+    grad.addColorStop(0,'rgba(31,111,168,0.22)');
+    grad.addColorStop(1,'rgba(31,111,168,0.02)');
+    ctx.lineTo(L+pw0,T+ph0); ctx.lineTo(L,T+ph0); ctx.closePath();
+    ctx.fillStyle=grad; ctx.fill();
+
+    ctx.beginPath();
+    for(i0=0;i0<pts.length;i0++){
+      var px2=X(pts[i0][0]), py2=Y(pts[i0][1]);
+      if(i0===0) ctx.moveTo(px2,py2); else ctx.lineTo(px2,py2);
+    }
+    ctx.strokeStyle='#1f6fa8'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+
+    // 基准点
+    var baseV=v3At(trendKey, BASE[trendKey]);
+    var bx=X(BASE[trendKey]), by=Y(baseV);
+    ctx.beginPath(); ctx.arc(bx,by,3.4,0,Math.PI*2);
+    ctx.fillStyle='#9fb2c2'; ctx.fill();
+
+    // 当前点
+    var cx=X(S[trendKey]), cy=Y(C.v3);
+    ctx.beginPath(); ctx.moveTo(cx,T); ctx.lineTo(cx,T+ph0);
+    ctx.setLineDash([3,3]); ctx.strokeStyle='#e0b39c'; ctx.lineWidth=1; ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(cx,cy,5.6,0,Math.PI*2); ctx.fillStyle='#e2612e'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,2.4,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+
+    // 轴标签：左端点值 / 中间参数名 / 右端点值
+    ctx.textBaseline='top';
+    ctx.font='10px -apple-system,"PingFang SC",sans-serif';
+    ctx.fillStyle='#93a9ba';
+    ctx.textAlign='left';
+    ctx.fillText(String(cfg.min), L, T+ph0+7);
+    ctx.textAlign='right';
+    ctx.fillText(cfg.max+(cfg.unit?' '+cfg.unit:''), L+pw0, T+ph0+7);
+    ctx.fillStyle='#54748c';
+    ctx.textAlign='center';
+    ctx.fillText(cfg.label, L+pw0/2, T+ph0+7);
+
+    // 当前值标签
+    ctx.font='bold 10.5px -apple-system,"PingFang SC",sans-serif';
+    ctx.fillStyle='#c2551a';
+    var lx=cx, ly=cy-12;
+    if(lx<L+22) lx=L+22;
+    if(lx>L+pw0-14) lx=L+pw0-14;
+    if(ly<T+8) ly=cy+18;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('v₃='+C.v3.toFixed(2), lx, ly);
+  }
+
+  /* ---------------- 交互 ---------------- */
+  function onInput(k){
+    S[k]=parseFloat(el[k].slider.value);
+    paintRange(k);
+    schedule();
+  }
+
+  var pending=false;
+  function schedule(){
+    if(pending) return;
+    pending=true;
+    requestAnimationFrame(function(){ pending=false; render(); });
+  }
+
+  for(var k in el){
+    if(!el.hasOwnProperty(k)) continue;
+    (function(key){
+      var sl=el[key].slider;
+      sl.addEventListener('input', function(){ onInput(key); });
+      sl.addEventListener('change', function(){ onInput(key); });
+      sl.addEventListener('touchstart', function(){ stopSweep(); }, {passive:true});
+      sl.addEventListener('mousedown', function(){ stopSweep(); });
+    })(k);
+  }
+
+  // “更多参数”折叠：不依赖 <details>，老版 X5 内核同样可用
+  var fold=$('advFold'), fbtn=$('advBtn'), fbody=$('advBody');
+  if(fold && fbtn && fbody){
+    fbtn.addEventListener('click', function(){
+      var open = fold.className.indexOf('open') >= 0;
+      if(open){
+        fold.className = 'fold';
+        fbtn.setAttribute('aria-expanded','false');
+      } else {
+        fold.className = 'fold open';
+        fbtn.setAttribute('aria-expanded','true');
+      }
+    });
+  }
+
+  $('reset').addEventListener('click', function(){
+    stopSweep();
+    for(var key in BASE){
+      if(!BASE.hasOwnProperty(key)) continue;
+      S[key]=BASE[key];
+      if(el[key]) el[key].slider.value=BASE[key];
+    }
+    paintAll();
+    schedule();
+  });
+
+  // chips
+  var chips=document.querySelectorAll('.chip');
+  for(var c=0;c<chips.length;c++){
+    (function(btn){
+      btn.addEventListener('click', function(){
+        for(var q=0;q<chips.length;q++){ chips[q].className='chip'; }
+        btn.className='chip on';
+        stopSweep();
+        trendKey=btn.getAttribute('data-key');
+        drawChart();
+      });
+    })(chips[c]);
+  }
+
+  // 自动扫参
+  var sweeping=false, sweepDir=1, sweepAcc=0;
+  function stopSweep(){
+    if(!sweeping) return;
+    sweeping=false;
+    $('sweep').textContent='▶ 自动演示';
+  }
+  $('sweep').addEventListener('click', function(){
+    if(sweeping){ stopSweep(); return; }
+    sweeping=true; sweepAcc=0;
+    var cfg=TREND[trendKey];
+    sweepDir = (S[trendKey] >= (cfg.min+cfg.max)/2) ? -1 : 1;
+    this.textContent='❚❚ 暂停';
+  });
+
+  function sweepTick(dt){
+    if(!sweeping) return;
+    sweepAcc+=dt;
+    if(sweepAcc<0.05) return;
+    sweepAcc=0;
+    var sl=el[trendKey].slider;
+    var step=parseFloat(sl.step)||1;
+    var v=parseFloat(sl.value)+sweepDir*step;
+    if(v>=parseFloat(sl.max)){ v=parseFloat(sl.max); sweepDir=-1; }
+    if(v<=parseFloat(sl.min)){ v=parseFloat(sl.min); sweepDir=1; }
+    sl.value=v;
+    onInput(trendKey);
+  }
+
+  /* ---------------- 主循环 ---------------- */
+  var last=0, running=true, slowCnt=0, jetEvery=1, frameNo=0;
+  function loop(ts){
+    if(!running) return;
+    var dt = last ? Math.min(0.05,(ts-last)/1000) : 0.016;
+    last=ts;
+
+    // 低端机保护：连续掉帧时把射流粒子改为隔帧更新
+    if(dt > 0.038){
+      slowCnt++;
+      if(slowCnt >= 18 && jetEvery < 2) jetEvery = 2;
+    } else if(slowCnt > 0){
+      slowCnt--;
+    }
+
+    // 主读数与副表同步取真实解，避免动画过程中出现不一致
+    var s=C.v3.toFixed(2);
+    if($('hudV').textContent!==s) $('hudV').textContent=s;
+    if($('liveV').textContent!==s) $('liveV').textContent=s;
+
+    // 管流条纹与叶轮
+    flowPhaseA = (flowPhaseA + C.v1*16*dt) % perA;
+    flowPhaseB = (flowPhaseB + C.v2*16*dt) % perB;
+    $('pFlowA').setAttribute('stroke-dashoffset', (-flowPhaseA).toFixed(1));
+    $('pFlowB').setAttribute('stroke-dashoffset', (-flowPhaseB).toFixed(1));
+    impAng = (impAng + Math.min(680, 140+S.N*26)*dt) % 360;
+    $('impeller').setAttribute('transform','rotate('+impAng.toFixed(1)+' 150 238)');
+
+    if(frameNo % jetEvery === 0) updateJet(dt*jetEvery);
+    frameNo++;
+    sweepTick(dt);
+    requestAnimationFrame(loop);
+  }
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden){ running=false; }
+    else if(!running){ running=true; last=0; requestAnimationFrame(loop); }
+  });
+
+  /* ---------------- 启动 ---------------- */
+  paintAll();
+  render();
+  requestAnimationFrame(loop);
+  setTimeout(function(){ drawChart(); }, 80);
+
+  var rt=null;
+  window.addEventListener('resize', function(){
+    clearTimeout(rt);
+    rt=setTimeout(drawChart, 120);
+  });
+  window.addEventListener('orientationchange', function(){
+    setTimeout(drawChart, 320);
+  });
+})();
+</script>
+</body>
+</html>
